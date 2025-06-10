@@ -29,7 +29,7 @@ MacPins是一款适用于macOS的剪贴板历史管理工具，允许用户方�
 
 ### 环境要求
 
-- Node.js 22
+- Node.js 18+
 - pnpm
 - macOS 10.13+
 
