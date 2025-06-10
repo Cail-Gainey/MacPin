@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*' # 当推送带有 v 前缀的标签时触发
 
+# 添加权限配置
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-latest
