@@ -41,6 +41,12 @@ jobs:
       - name: 安装依赖
         run: pnpm install
       
+      - name: 清理构建文件
+        run: pnpm run clean
+      
+      - name: 检查代码风格
+        run: pnpm run lint
+      
       - name: 准备资源
         run: pnpm run prepare-resources
       
@@ -54,7 +60,7 @@ jobs:
         run: |
           # 修改 electron-builder 配置，只构建 DMG 格式
           node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('package.json'));pkg.build.mac.target=['dmg'];fs.writeFileSync('package.json',JSON.stringify(pkg,null,2));"
-          pnpm run build:mac
+          electron-builder --mac --publish=never
       
       - name: 获取版本号
         id: get_version

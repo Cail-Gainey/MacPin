@@ -14,7 +14,8 @@
     "start": "electron .",
     "start:gc": "electron --expose-gc .",
     "postinstall": "node install-electron.js",
-    "build:mac": "pnpm run generate-icons && pnpm run build && electron-builder --mac",
+    "clean": "rm -rf dist release out",
+    "build:mac": "pnpm run clean && pnpm run generate-icons && pnpm run build && electron-builder --mac",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "test": "echo \"No tests specified\" && exit 0"
@@ -56,6 +57,11 @@
     "directories": {
       "output": "release"
     },
+    "forceCodeSigning": false,
+    "asar": true,
+    "asarUnpack": [
+      "resources/**/*"
+    ],
     "mac": {
       "category": "public.app-category.utilities",
       "target": [
@@ -75,7 +81,7 @@
     "extraResources": [
       {
         "from": "resources",
-        "to": "."
+        "to": "resources"
       },
       {
         "from": "build/Info.plist",
