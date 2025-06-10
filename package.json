@@ -10,13 +10,14 @@
     "dev:gc": "electron-vite dev --expose-gc",
     "generate-icons": "node scripts/generate-icons.js",
     "prepare-resources": "node scripts/prepare-resources.js",
-    "build": "npm run prepare-resources && electron-vite build",
+    "build": "pnpm run prepare-resources && electron-vite build",
     "start": "electron .",
     "start:gc": "electron --expose-gc .",
     "postinstall": "node install-electron.js",
-    "build:mac": "npm run generate-icons && npm run build && electron-builder --mac",
-    "build:win": "npm run prepare-resources && npm run build && electron-builder --win",
-    "build:linux": "npm run prepare-resources && npm run build && electron-builder --linux"
+    "build:mac": "pnpm run generate-icons && pnpm run build && electron-builder --mac",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "config": {
     "electron": {
@@ -33,10 +34,16 @@
     "@types/node": "^20.8.2",
     "@types/react": "^18.2.25",
     "@types/react-dom": "^18.2.10",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0",
     "@vitejs/plugin-react": "^4.1.0",
     "electron": "^25.8.4",
     "electron-builder": "^24.6.4",
     "electron-vite": "^1.0.29",
+    "eslint": "^9.28.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "typescript": "^5.2.2",
     "vite": "^4.4.11"
   },
