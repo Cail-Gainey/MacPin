@@ -1,0 +1,98 @@
+/**
+ * @file Header.css
+ * @description Header组件样式
+ * @author Cail Gainey <cailgainey@foxmail.com>
+ */
+
+.header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-color);
+  -webkit-app-region: drag; /* 允许拖动窗口 */
+}
+
+.header-title {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  -webkit-app-region: no-drag; /* 按钮区域不可拖动 */
+}
+
+.header-button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.header-button:hover {
+  background-color: var(--hover-color);
+}
+
+.pin-button {
+  color: var(--text-color);
+  transition: color 0.2s, transform 0.2s;
+}
+
+.pin-button:hover {
+  color: var(--primary-color);
+}
+
+.pin-button.active {
+  color: var(--primary-color);
+}
+
+.pin-button.active .header-icon {
+  transform: scale(1.1);
+}
+
+.clear-button:hover {
+  color: var(--danger-color);
+}
+
+.exit-button:hover {
+  color: var(--danger-color);
+  background-color: rgba(255, 59, 48, 0.1);
+}
+
+.about-button:hover {
+  color: var(--accent-color);
+}
+
+.header-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 状态变化提示 */
+.header-tooltip {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 1000;
+  animation: fadeInOut 2s ease;
+  pointer-events: none;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+} 

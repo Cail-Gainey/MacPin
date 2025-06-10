@@ -1,0 +1,24 @@
+# 这个文件定义了代码库各部分的所有者
+# 每次提交 Pull Request 时，系统会自动请求这些所有者进行审查
+
+# 默认所有者
+* @Cail-Gainey
+
+# 前端代码
+/src/renderer/ @Cail-Gainey
+
+# 主进程和预加载脚本
+/src/main/ @Cail-Gainey
+/src/preload/ @Cail-Gainey
+
+# 构建配置
+/electron.vite.config.ts @Cail-Gainey
+/vite.config.js @Cail-Gainey
+/package.json @Cail-Gainey
+
+# 文档
+/*.md @Cail-Gainey
+/docs/ @Cail-Gainey
+
+# GitHub 相关文件
+/.github/ @Cail-Gainey 

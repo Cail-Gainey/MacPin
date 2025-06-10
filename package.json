@@ -1,0 +1,99 @@
+{
+  "name": "macpins",
+  "version": "1.0.0",
+  "description": "mac剪贴板历史工具",
+  "main": "./dist/main/index.js",
+  "author": "Cail Gainey <cailgainey@foxmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "dev:gc": "electron-vite dev --expose-gc",
+    "generate-icons": "node scripts/generate-icons.js",
+    "prepare-resources": "node scripts/prepare-resources.js",
+    "build": "npm run prepare-resources && electron-vite build",
+    "start": "electron .",
+    "start:gc": "electron --expose-gc .",
+    "postinstall": "node install-electron.js",
+    "build:mac": "npm run generate-icons && npm run build && electron-builder --mac",
+    "build:win": "npm run prepare-resources && npm run build && electron-builder --win",
+    "build:linux": "npm run prepare-resources && npm run build && electron-builder --linux"
+  },
+  "config": {
+    "electron": {
+      "mirror": "https://registry.npmmirror.com/-/binary/electron/"
+    }
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^4.4.1"
+  },
+  "devDependencies": {
+    "@heroicons/react": "^2.0.18",
+    "@types/node": "^20.8.2",
+    "@types/react": "^18.2.25",
+    "@types/react-dom": "^18.2.10",
+    "@vitejs/plugin-react": "^4.1.0",
+    "electron": "^25.8.4",
+    "electron-builder": "^24.6.4",
+    "electron-vite": "^1.0.29",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.11"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "build": {
+    "appId": "com.cailgainey.macpins",
+    "productName": "MacPins",
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "resources/icon.icns",
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "MacPins需要使用AppleScript来模拟键盘操作，以便自动粘贴剪贴板内容",
+        "NSAppleScriptEnabled": true
+      }
+    },
+    "files": [
+      "dist",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "."
+      },
+      {
+        "from": "build/Info.plist",
+        "to": "Info.plist"
+      }
+    ],
+    "dmg": {
+      "icon": "resources/icon-1024.png",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "iconSize": 128
+    }
+  }
+}

@@ -1,0 +1,58 @@
+/**
+ * @file index.css
+ * @description 全局样式
+ * @author Cail Gainey <cailgainey@foxmail.com>
+ */
+
+:root {
+  --background-color: rgba(245, 245, 247, 0.95);
+  --text-color: #333333;
+  --border-color: #e0e0e0;
+  --hover-color: #f0f0f0;
+  --accent-color: #0071e3;
+  --danger-color: #ff3b30;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --header-height: 42px;
+  --border-radius: 10px;
+  --primary-color: #0071e3;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: transparent;
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+} 

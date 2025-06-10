@@ -1,0 +1,55 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*' # 当推送带有 v 前缀的标签时触发
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+      
+      - name: 设置 Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      
+      - name: 安装依赖
+        run: npm ci
+      
+      - name: 准备资源
+        run: npm run prepare-resources
+      
+      - name: 生成图标
+        run: npm run generate-icons
+      
+      - name: 构建应用
+        run: npm run build
+      
+      - name: 构建 macOS DMG 包
+        run: |
+          # 修改 electron-builder 配置，只构建 DMG 格式
+          node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('package.json'));pkg.build.mac.target=['dmg'];fs.writeFileSync('package.json',JSON.stringify(pkg,null,2));"
+          npm run build:mac
+      
+      - name: 获取版本号
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: 创建 Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: MacPins ${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            release/MacPins-*.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
