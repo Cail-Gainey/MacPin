@@ -17,7 +17,7 @@ jobs:
       - name: 设置 Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22
+          node-version: 18
       
       - name: 安装 pnpm
         uses: pnpm/action-setup@v2

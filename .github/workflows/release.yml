@@ -57,7 +57,7 @@ jobs:
         run: |
           # 修改 electron-builder 配置，只构建 DMG 格式
           node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('package.json'));pkg.build.mac.target=['dmg'];fs.writeFileSync('package.json',JSON.stringify(pkg,null,2));"
-          electron-builder --mac --publish=never
+          pnpm exec electron-builder --mac --publish=never
       
       - name: 获取版本号
         id: get_version
