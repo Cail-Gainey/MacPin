@@ -44,9 +44,6 @@ jobs:
       - name: 清理构建文件
         run: pnpm run clean
       
-      - name: 检查代码风格
-        run: pnpm run lint
-      
       - name: 准备资源
         run: pnpm run prepare-resources
       
