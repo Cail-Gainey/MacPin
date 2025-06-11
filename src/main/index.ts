@@ -265,21 +265,29 @@ function createTray() {
   if (process.env.NODE_ENV === 'development') {
     iconPath = join(__dirname, '../../resources/icon.png');
   } else {
-    // 生产环境下使用相对于应用根目录的路径
-    iconPath = join(process.resourcesPath, 'icon.png');
-  }
-
-  // 确保图标文件存在
-  try {
-    if (!fs.existsSync(iconPath)) {
-      console.error(`图标文件不存在: ${iconPath}`);
-      // 尝试使用备用路径
-      iconPath = app.isPackaged 
-        ? join(process.resourcesPath, 'icon.png') 
-        : join(__dirname, '../../resources/icon.png');
+    // 生产环境下尝试多个可能的路径
+    const possiblePaths = [
+      join(__dirname, 'assets/icon.png'),  // 首先检查 dist/main/assets 目录
+      join(process.resourcesPath, 'icon.png'),  // 然后检查 resources 目录
+      join(app.getAppPath(), 'dist/main/assets/icon.png')  // 最后检查应用根目录
+    ];
+    
+    // 尝试找到第一个存在的图标文件
+    iconPath = possiblePaths.find(p => {
+      try {
+        return fs.existsSync(p);
+      } catch (e) {
+        return false;
+      }
+    });
+    
+    // 如果找不到图标，使用默认路径
+    if (!iconPath) {
+      console.error('找不到托盘图标文件，使用默认路径');
+      iconPath = join(process.resourcesPath, 'icon.png');
+    } else {
+      console.log(`使用托盘图标: ${iconPath}`);
     }
-  } catch (error) {
-    console.error('检查图标路径时出错:', error);
   }
 
   // 创建托盘图标

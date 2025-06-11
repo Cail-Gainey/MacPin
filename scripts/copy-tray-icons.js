@@ -14,7 +14,10 @@ if (!fs.existsSync(targetDir)) {
 
 // 复制托盘图标
 const resourcesDir = path.join(__dirname, '../resources');
-const iconFiles = fs.readdirSync(resourcesDir).filter(file => file.startsWith('tray') && (file.endsWith('.png') || file.endsWith('.ico')));
+const iconFiles = fs.readdirSync(resourcesDir).filter(file => 
+  (file.startsWith('tray') || file === 'icon.png') && 
+  (file.endsWith('.png') || file.endsWith('.ico'))
+);
 
 if (iconFiles.length === 0) {
   console.log('警告: 未找到托盘图标文件');
