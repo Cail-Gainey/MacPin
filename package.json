@@ -10,12 +10,13 @@
     "dev:gc": "electron-vite dev --expose-gc",
     "generate-icons": "node scripts/generate-icons.js",
     "prepare-resources": "node scripts/prepare-resources.js",
-    "build": "pnpm run prepare-resources && electron-vite build",
+    "copy-tray-icons": "node scripts/copy-tray-icons.js",
+    "build": "pnpm run prepare-resources && electron-vite build && pnpm run copy-tray-icons",
     "start": "electron .",
     "start:gc": "electron --expose-gc .",
     "postinstall": "node install-electron.js",
     "clean": "rm -rf dist release out",
-    "build:mac": "pnpm run clean && pnpm run generate-icons && pnpm run build && electron-builder --mac",
+    "build:mac": "pnpm run clean && pnpm run generate-icons && pnpm run build && electron-builder --mac --universal",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "test": "echo \"No tests specified\" && exit 0"
@@ -57,16 +58,24 @@
     "directories": {
       "output": "release"
     },
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
     "forceCodeSigning": false,
     "asar": true,
     "asarUnpack": [
-      "resources/**/*"
+      "resources/**/*",
+      "dist/main/assets/*"
     ],
     "mac": {
       "category": "public.app-category.utilities",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
       ],
       "icon": "resources/icon.icns",
       "extendInfo": {

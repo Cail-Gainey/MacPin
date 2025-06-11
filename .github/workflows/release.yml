@@ -57,10 +57,14 @@ jobs:
       - name: 构建应用
         run: pnpm run build
       
+      - name: 检查构建目录
+        run: |
+          echo "检查图标目录:"
+          ls -la dist/main/assets/ || echo "目录不存在"
+      
       - name: 构建 macOS DMG 包
         run: |
-          # 修改 electron-builder 配置，只构建 DMG 格式
-          node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('package.json'));pkg.build.mac.target=[{target:'dmg',arch:['x64','arm64']}];fs.writeFileSync('package.json',JSON.stringify(pkg,null,2));"
+          # 使用配置好的通用构建
           pnpm exec electron-builder --mac --universal --publish=never
       
       - name: 获取版本号
