@@ -46,6 +46,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 获取窗口置顶状态
   getAlwaysOnTopStatus: () => ipcRenderer.invoke('get-always-on-top-status'),
   
+  // 获取应用版本号
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  
   // 监听剪贴板更新事件
   onClipboardUpdated: (callback: (history: ClipboardItem[]) => void) => {
     ipcRenderer.on('clipboard-updated', (_, history) => callback(history));

@@ -1,9 +1,9 @@
-import { ipcMain, clipboard, BrowserWindow } from 'electron';
+import { ipcMain, clipboard, BrowserWindow, app } from 'electron';
 import { loadClipboardHistory, clipboardHistory, saveClipboardHistory, loadImageFromFile } from '../clipboard/clipboardManager';
 import { runAppleScript } from '../window/windowManager';
 import { Settings } from '../settings';
 import { clearClipboardHistoryKeepPinned } from '../clearClipboardHistory';
-import logger from '../utils/logger';
+import logger, { LogCategory } from '../utils/logger';
 
 /**
  * @file ipcManager.ts
@@ -168,17 +168,23 @@ export function registerSettingsIpcHandlers(settingsUpdatedCallback: () => void)
  * @param exitCallback 退出应用的回调函数
  */
 export function registerAppLifecycleIpcHandlers(exitCallback: () => void): void {
-  logger.info('注册应用生命周期相关IPC处理程序');
+  logger.info('注册应用生命周期相关IPC处理程序', LogCategory.IPC);
   
   // 添加强制退出的IPC处理
   ipcMain.handle('exit-application', () => {
-    logger.info('IPC: 处理exit-application请求，准备退出应用');
+    logger.info('IPC: 处理exit-application请求，准备退出应用', LogCategory.IPC);
     exitCallback();
+  });
+  
+  // 添加获取应用版本号的处理程序
+  ipcMain.handle('get-app-version', () => {
+    logger.debug('IPC: 处理get-app-version请求', LogCategory.IPC);
+    return app.getVersion();
   });
   
   // 添加show-about事件处理
   ipcMain.on('show-about-response', () => {
-    logger.debug('IPC: 收到show-about-response事件');
+    logger.debug('IPC: 收到show-about-response事件', LogCategory.IPC);
     // 空实现，只是为了响应渲染进程的确认
   });
 } 

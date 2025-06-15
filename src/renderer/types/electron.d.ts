@@ -26,6 +26,7 @@ declare global {
       togglePinned: (id: string) => Promise<void>;
       toggleAlwaysOnTop: () => Promise<boolean>;
       getAlwaysOnTopStatus: () => Promise<boolean>;
+      getAppVersion: () => Promise<string>;
       onClipboardUpdated: (callback: (history: ClipboardItem[]) => void) => () => void;
       onClipboardPasteFailed: (callback: (data: {message: string}) => void) => () => void;
       onShortcutRegistrationFailed: (callback: (data: {message: string}) => void) => () => void;
