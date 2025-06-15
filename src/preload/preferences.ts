@@ -15,6 +15,7 @@ interface Settings {
   showInDock: boolean;
   maxHistoryItems: number;
   disableGPU: boolean;
+  logLevel: string;
 }
 
 // 暴露给渲染进程的API

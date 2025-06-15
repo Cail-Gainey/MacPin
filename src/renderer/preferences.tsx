@@ -17,14 +17,38 @@ interface Settings {
   showInDock: boolean;
   maxHistoryItems: number;
   disableGPU: boolean;
+  logLevel: string;
 }
+
+// 默认设置值
+const defaultSettings: Settings = {
+  shortcut: 'CommandOrControl+Shift+V',
+  historyRetention: 0,
+  launchAtStartup: false,
+  showTrayIcon: true,
+  showInDock: false,
+  maxHistoryItems: 50,
+  disableGPU: true,
+  logLevel: 'info'
+};
 
 // 历史记录数量选项
 const historyItemsOptions = [
+  { value: 10, label: '10条' },
+  { value: 20, label: '20条' },
   { value: 50, label: '50条' },
   { value: 100, label: '100条' },
   { value: 200, label: '200条' },
-  { value: 999999, label: '无限制' },
+  { value: 500, label: '500条' },
+  { value: 999999, label: '不限制' }
+];
+
+// 日志级别选项
+const logLevelOptions = [
+  { value: 'debug', label: '调试 (Debug) - 详细日志' },
+  { value: 'info', label: '信息 (Info) - 标准日志' },
+  { value: 'warn', label: '警告 (Warn) - 仅警告和错误' },
+  { value: 'error', label: '错误 (Error) - 仅错误' }
 ];
 
 // 键盘按键映射
@@ -40,28 +64,33 @@ const keyMapping: Record<string, string> = {
 };
 
 const PreferencesApp: React.FC = () => {
-  const [settings, setSettings] = useState<Settings>({
-    shortcut: 'CommandOrControl+Shift+V',
-    historyRetention: 0, // 设置为0（无限制）
-    launchAtStartup: true,
-    showTrayIcon: true,
-    showInDock: true,
-    maxHistoryItems: 50,
-    disableGPU: true, // 默认禁用GPU加速
-  });
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [saveMessage, setSaveMessage] = useState<string>('');
-  const [isRecordingShortcut, setIsRecordingShortcut] = useState<boolean>(false);
-  const [displayShortcut, setDisplayShortcut] = useState<string>('');
+  // 状态
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [isRecordingShortcut, setIsRecordingShortcut] = useState(false);
+  const [displayShortcut, setDisplayShortcut] = useState('');
+  const [lastShortcut, setLastShortcut] = useState(''); // 保存上一次的快捷键
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
+  
+  // 引用
   const shortcutInputRef = useRef<HTMLInputElement>(null);
-
+  const shortcutContainerRef = useRef<HTMLDivElement>(null);
+  
   // 加载设置
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const loadedSettings = await window.preferencesAPI.getSettings();
-        setSettings(loadedSettings);
-        setDisplayShortcut(formatShortcut(loadedSettings.shortcut));
+        // 确保所有必需的字段都存在
+        const completeSettings: Settings = {
+          ...defaultSettings,
+          ...loadedSettings
+        };
+        setSettings(completeSettings);
+        
+        // 处理快捷键显示
+        const formattedShortcut = formatShortcutForDisplay(completeSettings.shortcut);
+        setDisplayShortcut(formattedShortcut);
+        setLastShortcut(formattedShortcut); // 初始化上一次的快捷键
       } catch (error) {
         console.error('加载设置失败:', error);
       }
@@ -69,110 +98,140 @@ const PreferencesApp: React.FC = () => {
     
     loadSettings();
   }, []);
+  
+  // 添加点击外部区域的事件监听器
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isRecordingShortcut && 
+        shortcutContainerRef.current && 
+        !shortcutContainerRef.current.contains(event.target as Node)
+      ) {
+        // 点击了快捷键输入区域外部，取消记录并恢复上一次的快捷键
+        setIsRecordingShortcut(false);
+        setDisplayShortcut(lastShortcut);
+      }
+    };
 
-  // 处理设置变更
-  const handleChange = (key: keyof Settings, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    // 只有在记录快捷键状态下才添加事件监听器
+    if (isRecordingShortcut) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    // 清理函数
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isRecordingShortcut, lastShortcut]);
+  
+  // 格式化快捷键显示
+  const formatShortcutForDisplay = (shortcut: string): string => {
+    return shortcut
+      .replace('CommandOrControl', isMac() ? '⌘' : 'Ctrl')
+      .replace('Command', '⌘')
+      .replace('Control', 'Ctrl')
+      .replace('Alt', isMac() ? '⌥' : 'Alt')
+      .replace('Shift', isMac() ? '⇧' : 'Shift')
+      .replace('Meta', isMac() ? '⌘' : 'Win')
+      .replace(/\+/g, ' + ');
   };
-
+  
+  // 检测是否为macOS
+  const isMac = (): boolean => {
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  };
+  
   // 开始记录快捷键
   const startRecordingShortcut = () => {
     setIsRecordingShortcut(true);
-    setDisplayShortcut('点击此处并按下快捷键...');
-    // 聚焦到输入框
-    shortcutInputRef.current?.focus();
+    if (shortcutInputRef.current) {
+      shortcutInputRef.current.focus();
+    }
   };
-
-  // 处理键盘事件
+  
+  // 处理按键
   const handleKeyDown = (e: React.KeyboardEvent) => {
     e.preventDefault();
     
-    // 忽略单独的修饰键
-    if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
-      return;
+    if (isRecordingShortcut) {
+      // 如果按下了Escape键，取消记录并恢复上一次的快捷键
+      if (e.key === 'Escape') {
+        setIsRecordingShortcut(false);
+        setDisplayShortcut(lastShortcut);
+        return;
+      }
+      
+      // 忽略单独的修饰键
+      if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
+        return;
+      }
+      
+      // 构建快捷键字符串
+      let shortcut = '';
+      if (e.ctrlKey) shortcut += 'Control+';
+      if (e.shiftKey) shortcut += 'Shift+';
+      if (e.altKey) shortcut += 'Alt+';
+      if (e.metaKey) shortcut += (isMac() ? 'Command+' : 'Meta+');
+      
+      // 添加主键
+      shortcut += e.key.toUpperCase();
+      
+      // 替换为通用格式
+      if (shortcut.includes('Control+') || shortcut.includes('Command+')) {
+        shortcut = shortcut.replace(/^(Control|Command)\+/, 'CommandOrControl+');
+      }
+      
+      // 更新设置和显示
+      const formattedShortcut = formatShortcutForDisplay(shortcut);
+      handleChange('shortcut', shortcut);
+      setDisplayShortcut(formattedShortcut);
+      setLastShortcut(formattedShortcut); // 更新上一次的快捷键
+      setIsRecordingShortcut(false);
     }
-    
-    // 构建快捷键字符串
-    const modifiers = [];
-    if (e.ctrlKey) modifiers.push('Control');
-    if (e.metaKey) modifiers.push('Meta');
-    if (e.altKey) modifiers.push('Alt');
-    if (e.shiftKey) modifiers.push('Shift');
-    
-    // 至少需要一个修饰键
-    if (modifiers.length === 0) {
-      setDisplayShortcut('请至少按下一个修饰键 (Command/Ctrl/Alt/Shift)');
-      return;
-    }
-    
-    // 构建显示的快捷键
-    const displayModifiers = modifiers.map(mod => keyMapping[mod] || mod);
-    const displayKey = keyMapping[e.key] || e.key.toUpperCase();
-    const displayShortcutValue = [...displayModifiers, displayKey].join('+');
-    
-    // 构建Electron格式的快捷键
-    const electronModifiers = modifiers.join('+');
-    const electronKey = e.key === ' ' ? 'Space' : e.key;
-    const electronShortcut = `${electronModifiers}+${electronKey}`;
-    
-    setDisplayShortcut(displayShortcutValue);
-    handleChange('shortcut', electronShortcut);
-    setIsRecordingShortcut(false);
-    
-    // 自动保存设置
-    autoSaveShortcut(electronShortcut);
   };
   
-  // 自动保存快捷键设置
-  const autoSaveShortcut = async (shortcut: string) => {
-    try {
-      // 只更新快捷键设置
-      const settingsToSave = { ...settings, shortcut };
-      await window.preferencesAPI.saveSettings(settingsToSave);
-      
-      // 显示短暂的成功提示
-      setSaveMessage('快捷键已保存');
-      setTimeout(() => {
-        setSaveMessage('');
-      }, 1500);
-    } catch (error) {
-      console.error('保存快捷键失败:', error);
-      setSaveMessage('快捷键保存失败');
-      setTimeout(() => {
-        setSaveMessage('');
-      }, 1500);
-    }
+  // 处理按键释放
+  const handleKeyUp = (e: React.KeyboardEvent) => {
+    // 如果只按了修饰键然后释放，不做任何处理
+    // 让点击外部区域的处理器来处理这种情况
   };
-
-  // 保存所有设置
+  
+  // 处理设置变更
+  const handleChange = (key: keyof Settings, value: any) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+    setUnsavedChanges(true);
+  };
+  
+  // 保存设置
   const handleSave = async () => {
-    setIsSaving(true);
-    setSaveMessage('');
-    
     try {
-      // 保存时始终将historyRetention设置为0（无限制）
-      const settingsToSave = { ...settings, historyRetention: 0 };
-      await window.preferencesAPI.saveSettings(settingsToSave);
-      setSaveMessage('设置已保存');
-      
-      // 3秒后清除消息
-      setTimeout(() => {
-        setSaveMessage('');
-      }, 3000);
+      await window.preferencesAPI.saveSettings(settings);
+      setUnsavedChanges(false);
     } catch (error) {
       console.error('保存设置失败:', error);
-      setSaveMessage('保存失败');
-    } finally {
-      setIsSaving(false);
     }
   };
-
-  // 格式化显示快捷键
-  const formatShortcut = (shortcut: string): string => {
-    return shortcut
-      .replace('CommandOrControl', 'Command')
-      .replace('Alt', 'Option')
-      .replace('Space', '空格');
+  
+  // 取消更改
+  const handleCancel = async () => {
+    try {
+      const loadedSettings = await window.preferencesAPI.getSettings();
+      // 确保所有必需的字段都存在
+      const completeSettings: Settings = {
+        ...defaultSettings,
+        ...loadedSettings
+      };
+      setSettings(completeSettings);
+      
+      // 更新显示的快捷键和上一次的快捷键
+      const formattedShortcut = formatShortcutForDisplay(completeSettings.shortcut);
+      setDisplayShortcut(formattedShortcut);
+      setLastShortcut(formattedShortcut);
+      
+      setUnsavedChanges(false);
+    } catch (error) {
+      console.error('重新加载设置失败:', error);
+    }
   };
 
   return (
@@ -182,7 +241,7 @@ const PreferencesApp: React.FC = () => {
       <div className="preferences-section">
         <h2 className="section-title">通用</h2>
         
-        <div className="preference-item">
+        <div className="preference-item" ref={shortcutContainerRef}>
           <label htmlFor="shortcut">显示历史面板快捷键:</label>
           <input
             ref={shortcutInputRef}
@@ -193,9 +252,22 @@ const PreferencesApp: React.FC = () => {
             readOnly
             onClick={startRecordingShortcut}
             onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+            onBlur={() => {
+              // 输入框失去焦点时，如果仍在记录状态，则恢复上一次的快捷键
+              if (isRecordingShortcut) {
+                setIsRecordingShortcut(false);
+                setDisplayShortcut(lastShortcut);
+              }
+            }}
             placeholder="点击记录快捷键"
-            title="点击此处并按下新快捷键组合"
+            title="点击此处并按下新快捷键组合，按ESC取消"
           />
+          {isRecordingShortcut && (
+            <div className="shortcut-hint">
+              按下快捷键组合，或按ESC取消
+            </div>
+          )}
         </div>
         
         <div className="preference-item">
@@ -206,6 +278,22 @@ const PreferencesApp: React.FC = () => {
             onChange={(e) => handleChange('maxHistoryItems', Number(e.target.value))}
           >
             {historyItemsOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="preference-item">
+          <label htmlFor="logLevel">日志级别:</label>
+          <select 
+            id="logLevel" 
+            value={settings.logLevel}
+            onChange={(e) => handleChange('logLevel', e.target.value)}
+            title="调整应用程序日志的详细程度"
+          >
+            {logLevelOptions.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -230,22 +318,20 @@ const PreferencesApp: React.FC = () => {
             checked={settings.showTrayIcon}
             onChange={(e) => handleChange('showTrayIcon', e.target.checked)}
           />
-          <label htmlFor="showTrayIcon">在菜单栏显示图标</label>
+          <label htmlFor="showTrayIcon">显示顶栏图标</label>
         </div>
         
-        <div className="preference-item checkbox-item">
-          <input 
-            type="checkbox" 
-            id="showInDock" 
-            checked={settings.showInDock}
-            onChange={(e) => handleChange('showInDock', e.target.checked)}
-          />
-          <label htmlFor="showInDock">在Dock栏显示图标</label>
-        </div>
-      </div>
-      
-      <div className="preferences-section">
-        <h2 className="section-title">高级选项</h2>
+        {isMac() && (
+          <div className="preference-item checkbox-item">
+            <input 
+              type="checkbox" 
+              id="showInDock" 
+              checked={settings.showInDock}
+              onChange={(e) => handleChange('showInDock', e.target.checked)}
+            />
+            <label htmlFor="showInDock">在Dock栏显示图标</label>
+          </div>
+        )}
         
         <div className="preference-item checkbox-item">
           <input 
@@ -254,23 +340,24 @@ const PreferencesApp: React.FC = () => {
             checked={settings.disableGPU}
             onChange={(e) => handleChange('disableGPU', e.target.checked)}
           />
-          <label htmlFor="disableGPU">禁用GPU加速（降低内存占用，需要重启应用）</label>
-        </div>
-        
-        <div className="preference-note">
-          <p>注意：更改GPU加速设置需要重启应用才能生效。</p>
-          <p>禁用GPU加速可以显著降低内存占用，但可能会影响界面流畅度。</p>
+          <label htmlFor="disableGPU">禁用GPU加速（减少内存占用，重启生效）</label>
         </div>
       </div>
       
-      <div className="preferences-footer">
-        {saveMessage && <span className="save-message">{saveMessage}</span>}
+      <div className="preferences-actions">
+        <button 
+          className="cancel-button" 
+          onClick={handleCancel}
+          disabled={!unsavedChanges}
+        >
+          取消
+        </button>
         <button 
           className="save-button" 
           onClick={handleSave}
-          disabled={isSaving}
+          disabled={!unsavedChanges}
         >
-          {isSaving ? '保存中...' : '保存'}
+          保存
         </button>
       </div>
     </div>

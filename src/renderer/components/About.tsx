@@ -42,9 +42,6 @@ const About: React.FC<AboutProps> = ({ onClose }) => {
             <p className="about-copyright">
               © Cail Gainey
             </p>
-            <p className="about-contact">
-              联系方式: cailgainey@foxmail.com
-            </p>
           </div>
         </div>
       </div>

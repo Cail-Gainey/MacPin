@@ -1,6 +1,6 @@
 {
   "name": "macpins",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "mac剪贴板历史工具",
   "main": "./dist/main/index.js",
   "author": "Cail Gainey <cailgainey@foxmail.com>",
@@ -29,6 +29,7 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "winston": "^3.17.0",
     "zustand": "^4.4.1"
   },
   "devDependencies": {
@@ -70,11 +71,17 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "icon": "resources/icon.icns",
