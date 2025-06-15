@@ -10,7 +10,7 @@ import { app } from 'electron';
  */
 
 // 日志目录路径
-const LOG_DIR = path.join(app.getAppPath(), 'logs');
+const LOG_DIR = path.join(app.getPath('userData'), 'logs');
 const CURRENT_LOG_DIR = path.join(LOG_DIR, 'last');
 
 // 日志级别定义
